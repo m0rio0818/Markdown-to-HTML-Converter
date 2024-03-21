@@ -4,6 +4,7 @@ import os
 
 
 class FileConverter:
+    filepath = "./files/"
     md = markdown.Markdown()
     inputCommand = sys.argv
     
@@ -15,24 +16,43 @@ class FileConverter:
             convertType = FileConverter.inputCommand[1]
             inputfile = FileConverter.inputCommand[2]
             outputfile = FileConverter.inputCommand[3]
-            print(outputfile[outputfile.find("."):])
-        
-            if convertType == "markdown":
+            ouput_extentions = (outputfile[outputfile.find(".")+1:])
+            
+            full_inputfile = FileConverter.filepath + inputfile
+            full_outpufile = FileConverter.filepath + outputfile
+            print(full_inputfile, full_outpufile)
+            
+            if (ouput_extentions != "html"):
+                print("outputはhtmlファイルでないと、変換できません", outputfile)
+            else:
                 try:
-                    with open(inputfile, "r") as f:
+                    with open(full_inputfile, "r") as f:
                         mdData = f.read()
                         htmlData = FileConverter.md.convert(mdData)
-                    if os.path.exists(outputfile):
-                        print("outputファイルが既に存在しているので、上書きしました")            
-                    with open(outputfile, "w") as f:
-                        f.write(htmlData)
+                    flag = os.path.exists(full_outpufile)
+                    print(os.path.exists(full_outpufile), full_outpufile)
+                    
+                    while flag:
+                        print("output先に、ファイルは既に存在している")
+                        fileOverwrite = input("<< outputファイルが既に存在しているので、上書きしますか？>> y or n\n")
+                        if fileOverwrite == "y":        
+                            FileConverter.writeFile(full_outpufile, htmlData)
+                            break
+                        else:
+                            newoutput = input("もう一度、output filenameを入力してください")
+                            full_outpufile = FileConverter.filepath + newoutput 
+                            flag = os.path.exists(full_outpufile)
+                    else:
+                        FileConverter.writeFile(full_outpufile, htmlData)
+                    
                 except FileNotFoundError as f:
                     print("指定したファイルは存在しません. ファイルのpathを確認してください.", f)
-                
-            else:
-                print("変換方法タイプ")
-                
-                
+    
+    @staticmethod       
+    def writeFile(output_path,data):
+        with open(output_path, "w") as f:
+            f.write(data)
+                 
 def main():
     FileConverter.convert()
     
